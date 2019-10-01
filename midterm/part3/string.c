@@ -14,6 +14,26 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+int bcopy(const void *src, void *dest, unsigned int n)
+{
+   const char *s = (const char *)src;
+   char *d = (char *)dest;
+   if (s <= d){
+      for (; n>0; --n)
+         d[n-1] = s[n-1];
+   } 
+   else{
+     for (; n>0; --n)
+	*d++ = *s++;
+   }
+}
+
+char *memcpy(void *dest, const void *src, unsigned int n)
+{
+      bcopy(src, dest, n);
+      return dest;
+}
+
 int kprintf(char *, ...);
 int strlen(char *s)
 {

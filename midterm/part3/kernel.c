@@ -84,8 +84,6 @@ int printChild()
     }
     p = p->sibling;
   }
-
-  
 }
 
 int delete_child(PROC *p)
@@ -158,16 +156,19 @@ int do_wait()
   printf("proc %d wait for a ZOMBIE child %d ststus=%d\n",
 	 running->pid, pid, status);
 }
-
+int itimer();
 int body()
 {
   char command[64];
-  int pid, status;
+  int pid, status, time;
   kprintf("proc %d resume to body()\n", running->pid);
 
   while(1){
-
-    pid = running->pid;
+    kprintf("proc %d running, enter a timer value\n", running->pid);
+    kgets(command);
+    time = atoi(command);
+    itimer(time);
+    /*pid = running->pid;
     if (pid==0) color=BLUE;
     if (pid==1) color=GREEN;
     if (pid==2) color=CYAN;
@@ -195,6 +196,6 @@ int body()
     if (strcmp(command, "exit")==0)
        do_exit();
     if (strcmp(command, "wait")==0)
-      do_wait();
+      do_wait();*/
   }
 }

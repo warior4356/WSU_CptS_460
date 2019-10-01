@@ -34,15 +34,21 @@ void IRQ_handler()
           kbd_handler();
        }
     }
+    if (vicstatus & (1<<4)){ // timer0=bit4
+      timer_handler(0);
+    }
 }
 
 int body();
+void timer_handler();
+TIMER *tp[4];
+
 
 int main()
 { 
    color = WHITE;
    row = col = 0; 
-
+   int i;
    fbuf_init();
    kbd_init();
    
@@ -57,6 +63,10 @@ int main()
  
    kprintf("Welcome to WANIX in Arm\n");
    init();
+   timer_init();
+   i = 0;
+     tp[i] = &timer[i];
+     timer_start(i);
    kfork((int)body, 1);
    while(1){
      if (readyQueue)
