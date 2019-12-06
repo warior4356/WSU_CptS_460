@@ -20,6 +20,17 @@ void getPasswdTokens(char * passwdLine)
     }
 }
 
+unsigned int hashing(unsigned char *str) // djb2 hashing function
+{
+    unsigned int hash = 5381;
+    int c;
+
+    while (c = *str++)
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+    return hash;
+}
+
 main(int argc, char *argv[])   // invoked by exec("login /dev/ttyxx")
 { 
     tty =  argv[1];
@@ -49,13 +60,18 @@ main(int argc, char *argv[])   // invoked by exec("login /dev/ttyxx")
         // 3. show passwd:
         printf("passwd: ");
         // 4. read user passwd
+	    close(1);
         gets(password);
+        stdout = open(tty, O_WRONLY);
         // 5. verify user name and passwd from /etc/passwd file
         int passwd_file = open("/etc/passwd", O_RDONLY);
         
         char passwdLine[256];
         
-        while(getline(passwdLine))
+        unsigned int hash = hashing(password);
+        //printf("hash = %u\n", hash);
+        
+        while(getfline(passwdLine, passwd_file))
         {  
             getPasswdTokens(passwdLine);
             
@@ -64,15 +80,18 @@ main(int argc, char *argv[])   // invoked by exec("login /dev/ttyxx")
                 chdir to user HOME directory.
                 exec to the program in users's account
             }*/
-            if(strcmp(passwdTokens[0], username) == 0 && strcmp(passwdTokens[1], password) == 0)
+	        //printf(passwdTokens[0]);
+	    
+            if(strcmp(passwdTokens[0], username) == 0 && atoi(passwdTokens[1]) == hash)
             {
                 chuid(atoi(passwdTokens[3]), atoi(passwdTokens[2]));
                 chdir(passwdTokens[5]);
-		//printf(passwdTokens[5]);
+		        close(passwd_file);
+		        //printf(passwdTokens[5]);
                 exec("sh");
             }
         }
 
-        printf("login failed, try again");
+        printf("login failed, try again\n");
    }
 }

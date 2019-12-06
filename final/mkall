@@ -1,0 +1,20 @@
+#!/bin/bash
+
+./mk cat;
+./mk cp;
+./mk grep;
+./mk init;
+./mk l2u;
+./mk login;
+./mk ls;
+./mk man;
+./mk more;
+./mk sh
+./mk test;
+
+mount -o loop sdimage /mnt
+cp -av passwd /mnt/etc
+ls -lt /mnt/bin
+umount /mnt
+
+./r;

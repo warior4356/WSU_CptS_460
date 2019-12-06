@@ -19,66 +19,78 @@
 #define S_IROTH     0b000000000000000000100   //others have read permission
 #define S_IWOTH     0b000000000000000000010   //others have write permission
 #define S_IXOTH     0b000000000000000000001   //others have execute permission
-//                  0b000001000000100100100
+
+char dirPrefix[256];
 
 void ls_file(char* filename)
 {
-		STAT s;
-		stat(filename, &s);
-		if((s.st_mode & S_IFMT) == S_IFDIR)
+		STAT fstat, *s = &fstat;
+		char filepath[256];
+		strcpy(filepath, dirPrefix);
+		strcat(filepath, "/");
+		strcat(filepath, filename);
+		//printf("filepath = %s\n", filepath);
+		int r = stat(filepath, s);
+		if(r != 0)
+		{
+			print2f("file not found!\n");
+			return;
+		}
+		if((s->st_mode & S_IFMT) == S_IFDIR)
 		    mputc('d');
-		if((s.st_mode & S_IFMT) == S_IFREG)
+		if((s->st_mode & S_IFMT) == S_IFREG)
 		    mputc('-');		
-		if((s.st_mode & S_IFMT) == S_IFLNK)
+		if((s->st_mode & S_IFMT) == S_IFLNK)
 		    mputc('l');
 
-		if((s.st_mode & S_IRUSR) == S_IRUSR)
+		if((s->st_mode & S_IRUSR) == S_IRUSR)
 		    mputc('r');
 		else
 		    mputc('-');
-		if((s.st_mode & S_IWUSR) == S_IWUSR)
+		if((s->st_mode & S_IWUSR) == S_IWUSR)
 		    mputc('w');
 		else
 		    mputc('-');
-		if((s.st_mode & S_IXUSR) == S_IXUSR)
+		if((s->st_mode & S_IXUSR) == S_IXUSR)
 		    mputc('x');
 		else
 		    mputc('-');
 
-		if((s.st_mode & S_IRGRP) == S_IRGRP)
+		if((s->st_mode & S_IRGRP) == S_IRGRP)
 		    mputc('r');
 		else
 		    mputc('-');
-		if((s.st_mode & S_IWGRP) == S_IWGRP)
+		if((s->st_mode & S_IWGRP) == S_IWGRP)
 		    mputc('w');
 		else
 		    mputc('-');
-		if((s.st_mode & S_IXGRP) == S_IXGRP)
+		if((s->st_mode & S_IXGRP) == S_IXGRP)
 		    mputc('x');
 		else
 		    mputc('-');
 
-		if((s.st_mode & S_IROTH) == S_IROTH)
+		if((s->st_mode & S_IROTH) == S_IROTH)
 		    mputc('r');
 		else
 		    mputc('-');
-		if((s.st_mode & S_IWOTH) == S_IWOTH)
+		if((s->st_mode & S_IWOTH) == S_IWOTH)
 		    mputc('w');
 		else
 		    mputc('-');
-		if((s.st_mode & S_IXOTH) == S_IXOTH)
+		if((s->st_mode & S_IXOTH) == S_IXOTH)
 		    mputc('x');
 		else
 		    mputc('-');
 		
 		
-		printf("\t%d\t%d\t%d\t%d\t%s\n\r", s.st_nlink, s.st_uid, s.st_gid, s.st_size, filename);
+		printf("\t%d\t%d\t%d\t%d\t%s\n\r", s->st_nlink, s->st_uid, s->st_gid, s->st_size, filename);
 }
 
 void ls_dir(char* dirname)
 {
 	char buffer[1024];
 	char filename[256];
+	strcpy(dirPrefix, dirname);
 	int filePtr = open(dirname, O_RDONLY);
 	read(filePtr, buffer, 1024);
 	char * charPtr = buffer;
@@ -87,6 +99,7 @@ void ls_dir(char* dirname)
 	{
 		strcpy(filename, dirPtr->name);
 		filename[dirPtr->name_len] = '\0';
+		//printf("filename = %s\n", filename);
 		ls_file(filename);
 		charPtr += dirPtr->rec_len;
 		dirPtr = (DIR*)charPtr;	
@@ -97,6 +110,8 @@ main(int argc, char *argv[])   // invoked by exec("ls")
 {
     char cwd[64];
     getcwd(cwd);
+	//printf("cwd = %s\n", cwd);
+	
 
     if(argc < 2) // ls CWD
     {
@@ -105,9 +120,10 @@ main(int argc, char *argv[])   // invoked by exec("ls")
     
     else // ls var
     {
-		STAT s;
-		stat(argv[1], &s);
-		if((s.st_mode & S_IFMT) == S_IFDIR)
+		//printf("argv[1] = %s\n", argv[1]);
+		STAT fstat, *s = &fstat;
+		stat(argv[1], s);
+		if((s->st_mode & S_IFMT) == S_IFDIR)
 			ls_dir(argv[1]);
 		else
 			ls_file(argv[1]);

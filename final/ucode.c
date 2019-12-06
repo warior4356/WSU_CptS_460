@@ -539,3 +539,35 @@ int strcasecmp(char *s1, char *s2)
   //printf("t2=%s\n", t1, t2);
   return strcmp(t1, t2);
 }
+
+int getfc(int file)
+{
+   int c, n;
+   n = read(file, &c, 1);
+
+   if (n==0 || c==4 || c==0 ) return EOF;  
+                                
+   return (c&0x7F);
+}
+
+// getline() does NOT show the input chars AND no cooking: 
+// for reditected inputs from a file which may contain '\b' chars
+
+int getfline(char *s, int file)
+{
+  int c;  
+  char *cp = s;
+  
+  c = getfc(file);
+
+  while ((c != EOF) && (c != '\r') && (c != '\n')){
+    *cp++ = c;
+     c = getfc(file);
+  }
+  if (c==EOF) return 0;
+
+  *cp++ = c;         // a string with last char=\n or \r
+  *cp = 0;    
+  //printf("getline: %s", s); 
+  return strlen(s);  // at least 1 because last char=\r or \n
+}
